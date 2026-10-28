@@ -1,0 +1,2265 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <meta name="robots" content="noindex, nofollow">
+    <title>NutriSnap - AI Food Intelligence</title>
+
+    <!-- App Bookmark & Favicon Icons -->
+    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Gtk-dialog-authentication.svg/1024px-Gtk-dialog-authentication.svg.png">
+    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Gtk-dialog-authentication.svg/1024px-Gtk-dialog-authentication.svg.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+      :root {
+        color-scheme: light dark;
+
+        --bg:#f5f5f7;
+        --card:#ffffff;
+        --ink:#1d1d1f;
+        --mute:#6e6e73;
+        --faint:#86868b;
+        --hair:rgba(0,0,0,.08);
+        --fill:#f5f5f7;
+        --fill2:#e8e8ed;
+        --dash:rgba(0,0,0,.18);
+
+        --blue:#0071e3;
+        --blue-hover:#0077ed;
+        --blue-soft:rgba(0,113,227,.1);
+        --green:#34c759;
+        --green-ink:#248a3d;
+        --err:#d70015;
+
+        --protein:#5e5ce6;
+        --carbs:#ff9f0a;
+        --fat:#ff375f;
+        --fiber:#30d158;
+
+        --bar:rgba(245,245,247,.72);
+        --shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.05);
+
+        --warn-bg:#fff8e6;
+        --warn-line:#f3e2ae;
+        --warn-ink:#7a5b12;
+
+        --toast:rgba(29,29,31,.9);
+        --toast-error:rgba(215,0,21,.94);
+
+        --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,"Helvetica Neue",Arial,sans-serif;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg:#000000;
+          --card:#1c1c1e;
+          --ink:#f5f5f7;
+          --mute:#a1a1a6;
+          --faint:#8e8e93;
+          --hair:rgba(255,255,255,.12);
+          --fill:#2c2c2e;
+          --fill2:#3a3a3c;
+          --dash:rgba(255,255,255,.22);
+
+          --blue:#0a84ff;
+          --blue-hover:#409cff;
+          --blue-soft:rgba(10,132,255,.16);
+          --green-ink:#30d158;
+          --err:#ff453a;
+
+          --protein:#7d7aff;
+          --carbs:#ff9f0a;
+          --fat:#ff375f;
+          --fiber:#30d158;
+
+          --bar:rgba(22,22,23,.72);
+          --shadow:0 0 0 1px rgba(255,255,255,.04);
+
+          --warn-bg:#2a2314;
+          --warn-line:#4a3c1a;
+          --warn-ink:#f0cf7a;
+
+          --toast:rgba(58,58,60,.92);
+        }
+      }
+
+      * { box-sizing:border-box; }
+
+      [hidden] { display:none !important; }
+
+      /* Allow smooth horizontal and vertical scrolling */
+      html {
+        -webkit-text-size-adjust:100%;
+        height:auto;
+        min-height:100%;
+        overflow-x:auto;
+        overflow-y:auto;
+        -webkit-overflow-scrolling:touch;
+      }
+
+      body {
+        margin:0;
+        min-width:320px;
+        color:var(--ink);
+        background:var(--bg);
+        font-family:var(--font);
+        font-size:17px;
+        line-height:1.47;
+        letter-spacing:-.022em;
+        -webkit-font-smoothing:antialiased;
+        -moz-osx-font-smoothing:grayscale;
+        height:auto;
+        min-height:100%;
+        overflow-x:auto;
+        overflow-y:auto;
+        touch-action:auto;
+      }
+
+      button,input,select,textarea { font:inherit; letter-spacing:inherit; }
+      button { cursor:pointer; -webkit-tap-highlight-color:transparent; }
+
+      button:focus-visible,
+      .dish-input:focus-visible {
+        outline:3px solid var(--blue-soft);
+        outline-offset:2px;
+        box-shadow:0 0 0 1px var(--blue);
+      }
+
+      .shell { min-height:100vh; width:100%; }
+
+      /* Top bar and hero */
+      .masthead { display:contents; }
+
+      .nav {
+        position:sticky;
+        top:0;
+        z-index:5;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:16px;
+        height:auto;
+        min-height:52px;
+        padding:8px max(20px,calc((100vw - 1080px)/2));
+        background:var(--bar);
+        border-bottom:1px solid var(--hair);
+        -webkit-backdrop-filter:saturate(180%) blur(22px);
+        backdrop-filter:saturate(180%) blur(22px);
+        flex-wrap:wrap;
+      }
+
+      .brand {
+        display:flex;
+        align-items:center;
+        gap:9px;
+        color:var(--ink);
+        font-size:19px;
+        font-weight:600;
+        letter-spacing:-.03em;
+      }
+
+      .brand-mark {
+        display:grid;
+        width:26px;
+        height:26px;
+        place-items:center;
+        color:white;
+        background:linear-gradient(160deg,#4cd964,#1faa4b);
+        border-radius:8px;
+        font-size:15px;
+        line-height:1;
+      }
+
+      .brand em {
+        color:var(--green-ink);
+        font-style:normal;
+      }
+
+      /* App Navigation Tabs (Improved Mobile Layout) */
+      .nav-tabs {
+        display:flex;
+        gap:6px;
+        background:var(--fill);
+        padding:4px;
+        border-radius:12px;
+        flex-wrap:wrap;
+        justify-content:center;
+      }
+
+      .nav-tab {
+        padding:6px 14px;
+        color:var(--mute);
+        background:transparent;
+        border:0;
+        border-radius:8px;
+        font-size:13px;
+        font-weight:600;
+        cursor:pointer;
+        white-space:nowrap;
+        transition:background .15s ease, color .15s ease;
+      }
+
+      .nav-tab.active {
+        color:var(--ink);
+        background:var(--card);
+        box-shadow:0 1px 3px rgba(0,0,0,.1);
+      }
+
+      .privacy {
+        display:flex;
+        align-items:center;
+        gap:7px;
+        color:var(--mute);
+        font-size:13px;
+        font-weight:500;
+      }
+
+      .privacy:before {
+        width:7px;
+        height:7px;
+        content:"";
+        background:var(--green);
+        border-radius:50%;
+      }
+
+      .account {
+        display:flex;
+        align-items:center;
+        gap:14px;
+        min-width:0;
+        color:var(--mute);
+        font-size:13px;
+        font-weight:500;
+      }
+
+      .account-info {
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+      }
+
+      .account button {
+        flex:none;
+        padding:4px 0;
+        color:var(--blue);
+        background:none;
+        border:0;
+        font-size:13px;
+        font-weight:500;
+        cursor:pointer;
+      }
+
+      .account button:hover { text-decoration:underline; }
+
+      .hero {
+        max-width:860px;
+        margin:0 auto;
+        padding:88px 24px 64px;
+        text-align:center;
+      }
+
+      .eyebrow {
+        margin:0 0 12px;
+        color:var(--blue);
+        font-size:21px;
+        font-weight:600;
+        letter-spacing:-.02em;
+      }
+
+      .hero h1 {
+        margin:0;
+        font-size:64px;
+        font-weight:700;
+        line-height:1.05;
+        letter-spacing:-.045em;
+      }
+
+      .hero h1 em {
+        display:block;
+        color:var(--faint);
+        font-style:normal;
+        font-weight:700;
+      }
+
+      .hero p:not(.eyebrow) {
+        max-width:600px;
+        margin:22px auto 0;
+        color:var(--mute);
+        font-size:21px;
+        line-height:1.38;
+        letter-spacing:-.02em;
+      }
+
+      main {
+        max-width:1128px;
+        margin:0 auto;
+        padding:0 24px 72px;
+      }
+
+      .workspace {
+        display:grid;
+        grid-template-columns:440px 1fr;
+        gap:20px;
+        align-items:start;
+      }
+
+      .card {
+        background:var(--card);
+        border-radius:28px;
+        box-shadow:var(--shadow);
+      }
+
+      /* Login */
+      .login-view {
+        max-width:480px;
+        margin:0 auto;
+        padding:72px 16px 80px;
+      }
+
+      .login-card { padding:36px; }
+
+      .login-card h1 {
+        margin:0;
+        font-size:34px;
+        font-weight:700;
+        line-height:1.1;
+        letter-spacing:-.04em;
+      }
+
+      .login-sub {
+        margin:8px 0 6px;
+        color:var(--mute);
+        font-size:16px;
+        line-height:1.4;
+      }
+
+      .field {
+        display:block;
+        margin-top:18px;
+      }
+
+      .field span {
+        display:block;
+        margin-bottom:6px;
+        color:var(--mute);
+        font-size:14px;
+        font-weight:500;
+      }
+
+      .field input, .field select, .field textarea {
+        width:100%;
+        height:52px;
+        padding:0 16px;
+        color:var(--ink);
+        background:var(--fill);
+        border:1.5px solid transparent;
+        border-radius:14px;
+        font-size:17px;
+        outline:none;
+        transition:border-color .15s ease,background .15s ease,box-shadow .15s ease;
+      }
+
+      .field textarea { height:auto; padding:14px; }
+
+      .field input:focus, .field select:focus, .field textarea:focus {
+        background:var(--card);
+        border-color:var(--blue);
+        box-shadow:0 0 0 4px var(--blue-soft);
+      }
+
+      .login-error {
+        min-height:21px;
+        margin:14px 2px 0;
+        color:var(--err);
+        font-size:14px;
+        line-height:1.4;
+      }
+
+      .login-card .analyze { margin-top:12px; }
+
+      .remember {
+        display:flex;
+        align-items:center;
+        gap:10px;
+        margin-top:16px;
+        color:var(--mute);
+        font-size:15px;
+        font-weight:500;
+        cursor:pointer;
+        user-select:none;
+      }
+
+      .remember input {
+        width:20px;
+        height:20px;
+        margin:0;
+        accent-color:var(--blue);
+        cursor:pointer;
+      }
+
+      /* Upload card */
+      .scanner { padding:28px; }
+
+      .card-head {
+        display:flex;
+        justify-content:space-between;
+        gap:12px;
+        align-items:flex-start;
+      }
+
+      .card-head h2 {
+        margin:0;
+        font-size:24px;
+        font-weight:600;
+        line-height:1.17;
+        letter-spacing:-.03em;
+      }
+
+      .card-head p {
+        margin:6px 0 0;
+        color:var(--mute);
+        font-size:15px;
+        line-height:1.4;
+      }
+
+      .badge {
+        padding:4px 10px;
+        color:var(--blue);
+        background:var(--blue-soft);
+        border-radius:980px;
+        font-size:12px;
+        font-weight:600;
+        white-space:nowrap;
+      }
+
+      .dropzone {
+        position:relative;
+        display:grid;
+        min-height:240px;
+        margin-top:18px;
+        place-items:center;
+        overflow:hidden;
+        border:1.5px dashed var(--dash);
+        border-radius:22px;
+        background:var(--fill);
+        transition:background .2s ease,border-color .2s ease;
+      }
+
+      .dropzone.dragover {
+        border-color:var(--blue);
+        background:var(--blue-soft);
+      }
+
+      .dropzone.has-image {
+        border:0;
+        background:#000;
+      }
+
+      .dropzone input { display:none; }
+      .empty { padding:0 20px; text-align:center; }
+
+      .icon {
+        display:grid;
+        width:50px;
+        height:50px;
+        margin:0 auto 12px;
+        place-items:center;
+        color:var(--blue);
+        background:var(--blue-soft);
+        border-radius:16px;
+      }
+
+      .icon svg { width:24px; }
+
+      .empty b {
+        display:block;
+        font-size:16px;
+        font-weight:600;
+        letter-spacing:-.022em;
+      }
+
+      .empty .hint {
+        display:block;
+        margin-top:4px;
+        color:var(--mute);
+        font-size:13px;
+        line-height:1.4;
+      }
+
+      .browse {
+        margin-top:14px;
+        padding:8px 18px;
+        color:white;
+        background:var(--blue);
+        border:0;
+        border-radius:980px;
+        font-size:14px;
+        font-weight:500;
+        cursor:pointer;
+        transition:background .15s ease,transform .15s ease;
+      }
+
+      .browse:hover { background:var(--blue-hover); }
+      .browse:active { transform:scale(.97); }
+
+      .preview {
+        position:absolute;
+        display:none;
+        width:100%;
+        height:100%;
+        object-fit:cover;
+      }
+
+      .has-image .preview { display:block; }
+
+      .shade {
+        position:absolute;
+        display:none;
+        inset:0;
+        background:linear-gradient(transparent 60%,rgba(0,0,0,.55));
+      }
+
+      .has-image .shade { display:block; }
+      .has-image .empty { display:none; }
+
+      .photo-label {
+        position:absolute;
+        z-index:1;
+        right:14px;
+        bottom:14px;
+        left:18px;
+        display:none;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        color:white;
+        font-size:14px;
+        font-weight:500;
+      }
+
+      .has-image .photo-label { display:flex; }
+
+      .photo-label b {
+        overflow:hidden;
+        font-weight:500;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+      }
+
+      .photo-label button {
+        padding:6px 14px;
+        color:var(--ink);
+        background:rgba(255,255,255,.82);
+        border:0;
+        border-radius:980px;
+        font-size:13px;
+        font-weight:600;
+        cursor:pointer;
+        -webkit-backdrop-filter:saturate(180%) blur(16px);
+        backdrop-filter:saturate(180%) blur(16px);
+      }
+
+      .analyze {
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:9px;
+        width:100%;
+        min-height:52px;
+        margin-top:16px;
+        color:white;
+        background:var(--blue);
+        border:0;
+        border-radius:16px;
+        font-size:17px;
+        font-weight:600;
+        letter-spacing:-.022em;
+        cursor:pointer;
+        transition:background .15s ease,transform .15s ease,opacity .15s ease;
+      }
+
+      .analyze:hover { background:var(--blue-hover); }
+      .analyze:active { transform:scale(.985); }
+      .analyze:disabled { opacity:.55; cursor:wait; transform:none; }
+      .analyze svg { width:19px; }
+
+      .notice {
+        display:flex;
+        align-items:flex-start;
+        gap:7px;
+        margin:16px 2px 0;
+        color:var(--faint);
+        font-size:12px;
+        line-height:1.45;
+        letter-spacing:-.01em;
+      }
+
+      .notice i {
+        margin-top:1px;
+        color:var(--faint);
+        font-style:normal;
+      }
+
+      /* Results card */
+      .results {
+        min-height:500px;
+        padding:32px;
+      }
+
+      .empty-results {
+        display:grid;
+        height:436px;
+        place-items:center;
+        text-align:center;
+      }
+
+      .empty-results .orb {
+        display:grid;
+        width:76px;
+        height:76px;
+        margin:0 auto 20px;
+        place-items:center;
+        color:var(--blue);
+        background:var(--fill);
+        border-radius:50%;
+        font-size:28px;
+      }
+
+      .empty-results h2 {
+        margin:0;
+        font-size:24px;
+        font-weight:600;
+        line-height:1.17;
+        letter-spacing:-.03em;
+      }
+
+      .empty-results p {
+        max-width:320px;
+        margin:10px auto 0;
+        color:var(--mute);
+        font-size:15px;
+        line-height:1.45;
+      }
+
+      .analysis { display:none; }
+      .analysis.show { display:block; }
+
+      .analysis-top {
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:16px;
+      }
+
+      .result-kicker {
+        display:flex;
+        align-items:center;
+        gap:7px;
+        margin:0 0 4px;
+        color:var(--green-ink);
+        font-size:14px;
+        font-weight:600;
+      }
+
+      .dot {
+        width:8px;
+        height:8px;
+        background:var(--green);
+        border-radius:50%;
+        box-shadow:0 0 0 3px rgba(52,199,89,.2);
+      }
+
+      .dish-input {
+        width:100%;
+        max-width:460px;
+        padding:2px 0;
+        color:var(--ink);
+        background:transparent;
+        border:0;
+        border-bottom:1.5px solid transparent;
+        border-radius:0;
+        font-size:34px;
+        font-weight:700;
+        line-height:1.12;
+        letter-spacing:-.04em;
+        outline:none;
+        transition:border-color .15s ease;
+      }
+
+      .dish-input:hover,
+      .dish-input:focus {
+        border-bottom-color:var(--dash);
+      }
+
+      .dish-input:focus-visible { box-shadow:none; outline:none; border-bottom-color:var(--blue); }
+
+      .serving {
+        margin:6px 0 0;
+        color:var(--mute);
+        font-size:15px;
+      }
+
+      .confidence {
+        padding:5px 12px;
+        color:var(--mute);
+        background:var(--fill);
+        border-radius:980px;
+        font-size:13px;
+        font-weight:600;
+        white-space:nowrap;
+      }
+
+      .macro-layout {
+        display:grid;
+        grid-template-columns:190px 1fr;
+        gap:40px;
+        align-items:center;
+        margin-top:34px;
+      }
+
+      .ring {
+        display:grid;
+        position:relative;
+        width:172px;
+        height:172px;
+        margin:auto;
+        place-items:center;
+        border-radius:50%;
+        background:conic-gradient(var(--protein) 0 24%,var(--carbs) 24% 64%,var(--fat) 64% 83%,var(--fiber) 83% 100%);
+      }
+
+      .ring:after {
+        position:absolute;
+        width:136px;
+        height:136px;
+        content:"";
+        background:var(--card);
+        border-radius:50%;
+      }
+
+      .ring-content {
+        position:relative;
+        z-index:1;
+        text-align:center;
+      }
+
+      .ring-content b {
+        display:block;
+        font-size:44px;
+        font-weight:700;
+        line-height:1;
+        letter-spacing:-.05em;
+        font-variant-numeric:tabular-nums;
+      }
+
+      .ring-content span {
+        display:block;
+        margin-top:4px;
+        color:var(--mute);
+        font-size:12px;
+        font-weight:600;
+      }
+
+      .coverage {
+        margin:12px 0 0;
+        color:var(--faint);
+        text-align:center;
+        font-size:12px;
+      }
+
+      .macros {
+        display:grid;
+        gap:18px;
+      }
+
+      .macro {
+        display:grid;
+        grid-template-columns:72px 1fr 58px;
+        gap:12px;
+        align-items:center;
+      }
+
+      .macro span {
+        color:var(--mute);
+        font-size:15px;
+        font-weight:500;
+      }
+
+      .track {
+        height:8px;
+        overflow:hidden;
+        background:var(--fill2);
+        border-radius:980px;
+      }
+
+      .track i {
+        display:block;
+        width:0;
+        height:100%;
+        border-radius:inherit;
+        transition:width .7s cubic-bezier(.22,.8,.2,1);
+      }
+
+      .macro:nth-child(1) i { background:var(--protein); }
+      .macro:nth-child(2) i { background:var(--carbs); }
+      .macro:nth-child(3) i { background:var(--fat); }
+      .macro:nth-child(4) i { background:var(--fiber); }
+
+      .macro b {
+        font-size:15px;
+        font-weight:600;
+        text-align:right;
+        font-variant-numeric:tabular-nums;
+      }
+
+      .ingredient-list {
+        display:flex;
+        flex-wrap:wrap;
+        gap:8px;
+        margin-top:26px;
+        padding-top:24px;
+        border-top:1px solid var(--hair);
+      }
+
+      .ingredient {
+        padding:7px 13px;
+        color:var(--ink);
+        background:var(--fill);
+        border-radius:980px;
+        font-size:14px;
+        font-weight:500;
+      }
+
+      .micro-grid {
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:10px;
+        margin-top:22px;
+      }
+
+      .micro {
+        padding:14px 16px;
+        background:var(--fill);
+        border-radius:18px;
+      }
+
+      .micro span {
+        display:block;
+        color:var(--mute);
+        font-size:13px;
+        font-weight:500;
+      }
+
+      .micro b {
+        display:block;
+        margin-top:2px;
+        font-size:20px;
+        font-weight:600;
+        letter-spacing:-.03em;
+        font-variant-numeric:tabular-nums;
+      }
+
+      /* History */
+      .history {
+        margin-top:20px;
+        padding:28px;
+      }
+
+      .history-head {
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+      }
+
+      .history h2 {
+        margin:0;
+        font-size:24px;
+        font-weight:600;
+        letter-spacing:-.03em;
+      }
+
+      .history button {
+        padding:4px 0;
+        color:var(--blue);
+        background:none;
+        border:0;
+        font-size:15px;
+        font-weight:500;
+        cursor:pointer;
+      }
+
+      .history button:hover { text-decoration:underline; }
+
+      .history-list {
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:12px;
+        margin-top:20px;
+      }
+
+      .history-item {
+        min-width:0;
+        padding:16px 18px;
+        background:var(--fill);
+        border-radius:20px;
+      }
+
+      .history-item b {
+        display:block;
+        overflow:hidden;
+        font-size:16px;
+        font-weight:600;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+      }
+
+      .history-item span {
+        display:block;
+        margin-top:2px;
+        color:var(--mute);
+        font-size:13px;
+      }
+
+      .history-item strong {
+        display:block;
+        margin-top:12px;
+        font-size:22px;
+        font-weight:700;
+        letter-spacing:-.04em;
+        font-variant-numeric:tabular-nums;
+      }
+
+      .empty-history {
+        color:var(--mute);
+        font-size:15px;
+      }
+
+      /* Additional Tabs Content Styling */
+      .tab-view-container { max-width:800px; margin:40px auto; padding:0 20px 80px; }
+      .output-box { margin-top:20px; padding:20px; background:var(--fill); border-radius:18px; white-space:pre-wrap; font-size:15px; line-height:1.6; }
+      
+      .btn-secondary {
+        display:inline-flex; align-items:center; justify-content:center; padding:10px 20px;
+        color:var(--blue); background:var(--blue-soft); border:0; border-radius:12px; font-weight:600; cursor:pointer; margin-top:12px;
+      }
+
+      /* Toast */
+      .toast {
+        position:fixed;
+        z-index:10;
+        bottom:max(24px,env(safe-area-inset-bottom));
+        left:50%;
+        display:none;
+        width:max-content;
+        max-width:min(440px,calc(100vw - 32px));
+        padding:13px 18px;
+        color:white;
+        background:var(--toast);
+        border-radius:18px;
+        box-shadow:0 12px 40px rgba(0,0,0,.25);
+        font-size:14px;
+        line-height:1.4;
+        letter-spacing:-.01em;
+        transform:translateX(-50%);
+        -webkit-backdrop-filter:saturate(180%) blur(20px);
+        backdrop-filter:saturate(180%) blur(20px);
+      }
+
+      .toast.show {
+        display:block;
+        animation:in .28s cubic-bezier(.22,.8,.2,1);
+      }
+
+      .toast.error { background:var(--toast-error); }
+
+      @keyframes in {
+        from {
+          opacity:0;
+          transform:translate(-50%,12px);
+        }
+        to {
+          opacity:1;
+          transform:translate(-50%,0);
+        }
+      }
+
+      @media (max-width:980px) {
+        .workspace { grid-template-columns:1fr; }
+        .hero h1 { font-size:52px; }
+        .history-list { grid-template-columns:1fr; }
+        .macro-layout { grid-template-columns:1fr; gap:20px; }
+        .micro-grid { grid-template-columns:repeat(2,1fr); }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="shell">
+      <header class="masthead">
+        <div class="nav">
+          <div class="brand">
+            <span class="brand-mark">⌁</span>nutri<em>snap</em>
+          </div>
+
+          <!-- App Navigation Tabs (With Dedicated Recipes Tab) -->
+          <div class="nav-tabs" id="nav-tabs" hidden>
+            <button class="nav-tab active" type="button" data-tab="scanner">Scanner</button>
+            <button class="nav-tab" type="button" data-tab="diet">Diet Plan</button>
+            <button class="nav-tab" type="button" data-tab="exercises">Exercises</button>
+            <button class="nav-tab" type="button" data-tab="recipe">Recipes</button>
+            <button class="nav-tab" type="button" data-tab="subscribe">Subscribe / Pay</button>
+          </div>
+
+          <div class="privacy" id="privacy">Your photo is analyzed securely</div>
+          <div class="account" id="account" hidden>
+            <span class="account-info" id="account-info"></span>
+            <button id="logout" type="button">Sign out</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Sign-in screen -->
+      <section class="login-view" id="login-view" hidden>
+        <div class="card login-card" style="padding: 36px;">
+          <h1>Sign in</h1>
+          <p class="login-sub">Use the user ID and password you received with your NutriSnap access.</p>
+
+          <form id="login-form" novalidate>
+            <label class="field">
+              <span>User ID</span>
+              <input id="user-id" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+            </label>
+
+            <label class="field" style="margin-top: 18px;">
+              <span>Password</span>
+              <input id="password" type="password" autocomplete="current-password">
+            </label>
+
+            <label class="remember" for="remember">
+              <input id="remember" type="checkbox" checked>
+              <span>Remember me on this device</span>
+            </label>
+
+            <p class="login-error" id="login-error" role="alert"></p>
+
+            <button class="analyze" id="login-btn" type="submit"><span>Sign in</span></button>
+          </form>
+
+          <p class="notice" style="margin-top: 16px;">
+            <i>✦</i>
+            Don’t have access yet? Ask the owner to create your account.
+          </p>
+        </div>
+      </section>
+
+      <!-- The app (shown after sign-in) -->
+      <div id="app-view" hidden>
+        
+        <!-- Tab 1: Scanner View -->
+        <div id="tab-scanner">
+          <div class="hero">
+            <p class="eyebrow">Smart food intelligence</p>
+            <h1>Know what’s on your plate. <em>Not just a guess.</em></h1>
+            <p>
+              NutriSnap recognizes your dish and visible ingredients, then calculates
+              a serving estimate using USDA FoodData Central.
+            </p>
+          </div>
+
+          <main>
+            <div class="workspace">
+              <section class="card scanner" aria-labelledby="upload-title">
+                <div class="card-head">
+                  <div>
+                    <h2 id="upload-title">Add a food photo</h2>
+                    <p>A clear, overhead photo gives the best dish recognition.</p>
+                  </div>
+                  <span class="badge">AI + USDA</span>
+                </div>
+
+                <label class="dropzone" id="dropzone">
+                  <input id="photo" type="file" accept="image/jpeg,image/png,image/webp">
+
+                  <img id="preview" class="preview" alt="Selected food photo">
+                  <span class="shade"></span>
+
+                  <span class="empty">
+                    <span class="icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 16V4m0 0L8 8m4-4 4 4M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/>
+                      </svg>
+                    </span>
+
+                    <b>Choose or drop a meal photo</b>
+                    <span class="hint">JPG, PNG, WEBP · photos are compressed before analysis</span>
+                    <button class="browse" type="button" id="browse">Choose photo</button>
+                  </span>
+
+                  <span class="photo-label">
+                    <b id="filename">Photo ready</b>
+                    <button id="replace" type="button">Replace</button>
+                  </span>
+                </label>
+
+                <!-- Custom Ingredient Notes / Alterations Input -->
+                <div class="field" style="margin-top:14px;">
+                  <span>Ingredient alterations / notes (optional)</span>
+                  <input id="scan-notes" type="text" placeholder="e.g. extra cheese, cooked in olive oil, no sugar">
+                </div>
+
+                <button class="analyze" id="analyze" type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19">
+                    <path d="m12 3 1.6 5.4L19 10l-5.4 1.6L12 17l-1.6-5.4L5 10l5.4-1.6L12 3Z"/>
+                    <path d="m19 16 .7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7L19 16Z"/>
+                  </svg>
+                  <span>Identify &amp; analyze meal</span>
+                </button>
+
+                <p class="notice">
+                  <i>✦</i>
+                  Photos are sent only to the configured analysis services. Results are estimates—check hidden sauces and portion size before relying on them.
+                </p>
+              </section>
+
+              <section class="card results" aria-live="polite">
+                <div class="empty-results" id="empty-results">
+                  <div>
+                    <div class="orb">✦</div>
+                    <h2>Your nutrition result will appear here</h2>
+                    <p>
+                      We’ll name the dish, show what was recognized, and provide an
+                      ingredient-level estimate instead of a made-up total.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="analysis" id="analysis">
+                  <div class="analysis-top">
+                    <div>
+                      <p class="result-kicker"><i class="dot"></i> Analysis ready</p>
+                      <input class="dish-input" id="dish-name" aria-label="Dish name" value="">
+                      <p class="serving" id="serving"></p>
+                    </div>
+
+                    <span class="confidence" id="dish-confidence"></span>
+                  </div>
+
+                  <div class="macro-layout">
+                    <div>
+                      <div class="ring">
+                        <div class="ring-content">
+                          <b id="calories">0</b>
+                          <span>Calories</span>
+                        </div>
+                      </div>
+                      <p class="coverage" id="coverage"></p>
+                    </div>
+
+                    <div class="macros">
+                      <div class="macro">
+                        <span>Protein</span>
+                        <div class="track"><i id="protein-bar"></i></div>
+                        <b id="protein">0g</b>
+                      </div>
+
+                      <div class="macro">
+                        <span>Carbs</span>
+                        <div class="track"><i id="carbs-bar"></i></div>
+                        <b id="carbs">0g</b>
+                      </div>
+
+                      <div class="macro">
+                        <span>Fat</span>
+                        <div class="track"><i id="fat-bar"></i></div>
+                        <b id="fat">0g</b>
+                      </div>
+
+                      <div class="macro">
+                        <span>Fiber</span>
+                        <div class="track"><i id="fiber-bar"></i></div>
+                        <b id="fiber">0g</b>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="ingredient-list" id="ingredients"></div>
+
+                  <div class="micro-grid">
+                    <div class="micro"><span>Sugars</span><b id="sugars">0g</b></div>
+                    <div class="micro"><span>Sodium</span><b id="sodium">0mg</b></div>
+                    <div class="micro"><span>Potassium</span><b id="potassium">0mg</b></div>
+                    <div class="micro"><span>Calcium</span><b id="calcium">0mg</b></div>
+                    <div class="micro"><span>Iron</span><b id="iron">0mg</b></div>
+                    <div class="micro"><span>Sources</span><b>USDA FDC</b></div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <section class="card history" style="margin-top: 20px;">
+              <div class="history-head">
+                <h2>Recent scans</h2>
+                <button id="clear-history" type="button">Clear this device</button>
+              </div>
+
+              <div class="history-list" id="history-list"></div>
+            </section>
+          </main>
+        </div>
+
+        <!-- Tab 2: Get Your Diet Plan View -->
+        <div id="tab-diet" class="tab-view-container" hidden>
+          <div class="card" style="padding: 32px;">
+            <h2>Get Your AI Diet Plan</h2>
+            <p style="color:var(--mute); margin-bottom:20px;">Input your specs to generate a tailored, sustainable nutrition plan.</p>
+            
+            <div class="field">
+              <span>Height (cm)</span>
+              <input type="number" id="diet-height" placeholder="e.g. 175">
+            </div>
+            <div class="field" style="margin-top:14px;">
+              <span>Weight (kg)</span>
+              <input type="number" id="diet-weight" placeholder="e.g. 70">
+            </div>
+            <div class="field" style="margin-top:14px;">
+              <span>Fitness Goal</span>
+              <select id="diet-goal">
+                <option value="bulk">Muscle Bulk (Surplus)</option>
+                <option value="cut">Fat Loss / Weight Cut (Deficit)</option>
+                <option value="maintain">Maintain Weight</option>
+              </select>
+            </div>
+            <div class="field" style="margin-top:14px;">
+              <span>Food Preference</span>
+              <select id="diet-preference">
+                <option value="veg">Vegetarian</option>
+                <option value="non-veg">Non-Vegetarian</option>
+                <option value="vegan">Vegan</option>
+              </select>
+            </div>
+
+            <button class="analyze" onclick="generateDietPlanAction()" style="margin-top:24px;">Generate Diet Plan</button>
+            <div id="diet-output" class="output-box" hidden></div>
+            <button id="download-diet-btn" class="btn-secondary" onclick="downloadPdfContent('diet')" hidden>Download Diet Plan as PDF</button>
+          </div>
+        </div>
+
+        <!-- Tab 3: Exercises / Workout Routine View -->
+        <div id="tab-exercises" class="tab-view-container" hidden>
+          <div class="card" style="padding: 32px;">
+            <h2>AI Workout Routine Trainer</h2>
+            <p style="color:var(--mute); margin-bottom:20px;">Get smart workout splits with memory of your previous training sessions.</p>
+            
+            <div class="field">
+              <span>What did you work out recently or what's your focus today?</span>
+              <textarea id="workout-context" rows="3" placeholder="e.g. Did back yesterday, want a solid chest & triceps workout today" style="width:100%; padding:14px; background:var(--fill); border:1.5px solid transparent; border-radius:14px; color:var(--ink); outline:none; margin-top:6px;"></textarea>
+            </div>
+
+            <button class="analyze" onclick="generateWorkoutAction()" style="margin-top:18px;">Get Today's Workout Routine</button>
+            <div id="workout-output" class="output-box" hidden></div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button id="complete-workout-btn" class="btn-secondary" onclick="markWorkoutComplete()" hidden>Mark Workout Complete & Save Memory</button>
+              <button id="download-workout-btn" class="btn-secondary" onclick="downloadPdfContent('workout')" hidden>Download Workout as PDF</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: AI Recipe Generator View (New Dedicated Tab) -->
+        <div id="tab-recipe" class="tab-view-container" hidden>
+          <div class="card" style="padding: 32px;">
+            <h2>AI Chef Recipe Generator</h2>
+            <p style="color:var(--mute); margin-bottom:20px;">Type any meal name from your diet plan to generate professional, step-by-step cooking instructions.</p>
+            
+            <div class="field">
+              <span>Meal Name</span>
+              <input type="text" id="recipe-meal-name" placeholder="e.g. Grilled Paneer Salad or Oats Porridge">
+            </div>
+
+            <button class="analyze" onclick="generateRecipeAction()" style="margin-top:18px;">Get Step-by-Step Recipe</button>
+            <div id="recipe-output" class="output-box" hidden></div>
+            <button id="download-recipe-btn" class="btn-secondary" onclick="downloadPdfContent('recipe')" hidden>Download Recipe as PDF</button>
+          </div>
+        </div>
+
+        <!-- Tab 5: Subscribe / Payment View with Coupon Code & UTR Verification -->
+        <div id="tab-subscribe" class="tab-view-container" hidden>
+          <div class="card" style="padding: 36px; text-align:center;">
+            <h2>Extend Your Access</h2>
+            <p style="color: var(--mute); font-size: 15px; margin-bottom: 20px;">Monthly Plan: <strong style="font-size:22px; color:var(--ink);" id="plan-price-display">₹500</strong> / month</p>
+            
+            <!-- Coupon Code Section -->
+            <div style="max-width:380px; margin:0 auto 20px; display:flex; gap:8px;">
+              <input type="text" id="coupon-code-input" placeholder="Enter coupon code" style="flex:1; height:46px; padding:0 12px; background:var(--fill); border:1px solid var(--hair); border-radius:10px; color:var(--ink); text-transform:uppercase;">
+              <button class="browse" onclick="applyCoupon()" style="margin-top:0; height:46px;">Apply</button>
+            </div>
+            <p id="coupon-msg" style="font-size:13px; margin-bottom:15px;"></p>
+
+            <!-- QR Code Container -->
+            <div id="qrcode" style="display: inline-block; padding: 12px; background: white; border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);"></div>
+            
+            <p style="font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 15px;">UPI ID: <span style="font-weight: 500; color: var(--blue);">8369618330@yespop</span></p>
+            
+            <div style="display:flex; flex-direction:column; gap:12px; max-width:380px; margin:0 auto;">
+              <a id="upi-pay-btn" href="upi://pay?pa=8369618330@yespop&pn=Mr%20Atharva%20Milind%20Raul&am=500&cu=INR" class="analyze" style="text-decoration: none; display: flex; align-items: center; justify-content: center; background: #22c55e; margin-top:0;" target="_blank">
+                <span style="color: white; font-weight: 600; font-size: 16px;">Pay ₹500 via GPay / PhonePe / Paytm</span>
+              </a>
+
+              <!-- UTR Submission Box for 1-Day Trial & Verification -->
+              <div style="margin-top: 10px; padding: 16px; background: var(--fill); border-radius: 14px; text-align: left;">
+                <label style="display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--mute);">Already Paid? Enter 12-digit UTR / Ref ID:</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="utr-input" placeholder="e.g. 432109876543" style="flex:1; height:42px; padding:0 12px; background: var(--card); border: 1px solid var(--hair); border-radius: 8px; color: var(--ink); font-size: 14px;">
+                  <button class="browse" onclick="submitUtrAction()" style="margin-top:0; height:42px; font-size: 13px;">Submit UTR</button>
+                </div>
+                <p style="font-size: 11px; color: var(--faint); margin-top: 6px;">Submitting a valid UTR instantly grants a 1-day free trial pass while the admin verifies your payment.</p>
+              </div>
+
+              <button class="btn-secondary" onclick="downloadInvoicePdf()" style="margin-top:0; width:100%;">Download Payment Invoice (PDF)</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+      const $ = id => document.getElementById(id);
+
+      // --- NETLIFY TO APPS SCRIPT CORS BRIDGE ---
+      const API_ENDPOINT = '/.netlify/functions/api';
+
+      const api = {
+        call: async function(action, payload) {
+          if (typeof google !== 'undefined' && google.script && google.script.run) {
+            return new Promise((resolve, reject) => {
+              google.script.run
+                .withSuccessHandler(resolve)
+                .withFailureHandler(reject)[action](payload);
+            });
+          } else {
+            const res = await fetch(API_ENDPOINT, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({ action: action, payload: payload })
+            });
+            const json = await res.json();
+            if (!json.success) throw new Error(json.error || 'Server error');
+            return json.data;
+          }
+        }
+      };
+
+      const state = {
+        image: null,
+        result: null,
+        ready: false,
+        plan: '',
+        token: null,
+        userId: null,
+        remaining: null,
+        finalAmount: 500,
+        remember: true
+      };
+
+      const MAX_INPUT = 1.7 * 1024 * 1024;
+      const SESSION_KEY = 'nutrisnap-session-v1';
+
+      function toast(message, error) {
+        const box = $('toast');
+        box.textContent = message;
+        box.className = 'toast show' + (error ? ' error' : '');
+
+        clearTimeout(toast.timer);
+        toast.timer = setTimeout(() => {
+          box.className = 'toast';
+        }, 5000);
+      }
+
+      function number(value, decimals) {
+        return new Intl.NumberFormat(undefined, {
+          maximumFractionDigits: decimals === undefined ? 0 : decimals
+        }).format(Number(value || 0));
+      }
+
+      function percent(value, max) {
+        return Math.max(7, Math.min(100, Math.round(Number(value || 0) / max * 100))) + '%';
+      }
+
+      function escapeHtml(value) {
+        const element = document.createElement('span');
+        element.textContent = String(value);
+        return element.innerHTML;
+      }
+
+      function setBusy(value) {
+        const button = $('analyze');
+        button.disabled = value;
+        button.querySelector('span').textContent = value
+          ? 'Recognizing your meal…'
+          : 'Identify & analyze meal';
+      }
+
+      /* ---------- Navigation Tabs inside App ---------- */
+
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const target = tab.getAttribute('data-tab');
+          document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+
+          $('tab-scanner').hidden = target !== 'scanner';
+          $('tab-diet').hidden = target !== 'diet';
+          $('tab-exercises').hidden = target !== 'exercises';
+          $('tab-recipe').hidden = target !== 'recipe';
+          $('tab-subscribe').hidden = target !== 'subscribe';
+        });
+      });
+
+      /* ---------- Professional PDF Generation Helpers (Enhanced UI) ---------- */
+      function downloadPdfContent(type) {
+        const isDiet = type === 'diet';
+        const isRecipe = type === 'recipe';
+        const rawContent = isDiet ? $('diet-output').textContent : (isRecipe ? $('recipe-output').textContent : $('workout-output').textContent);
+        const title = isDiet ? 'Personalized AI Diet Plan' : (isRecipe ? 'AI Chef Recipe Guide' : 'Optimized AI Workout Routine');
+        const subtitle = isDiet ? 'Nutrition & Macros Strategy' : (isRecipe ? 'Step-by-Step Cooking Instructions' : 'Training Split & Exercise Schedule');
+
+        const formattedContent = rawContent
+          .split('\n')
+          .map(line => {
+            line = line.trim();
+            if (!line) return '<br>';
+            if (line.startsWith('#') || line.endsWith(':') || (line.toUpperCase() === line && line.length < 40)) {
+              return `<h3 style="margin-top: 20px; color: #0071e3; font-size: 17px; font-weight: 600;">${escapeHtml(line.replace(/#/g, ''))}</h3>`;
+            }
+            if (line.startsWith('-') || line.startsWith('•') || line.startsWith('*')) {
+              return `<li style="margin-bottom: 6px; color: #1d1d1f;">${escapeHtml(line.replace(/^[-•*]\s*/, ''))}</li>`;
+            }
+            return `<p style="margin: 4px 0; color: #1d1d1f;">${escapeHtml(line)}</p>`;
+          })
+          .join('');
+
+        const win = window.open('', '_blank');
+        win.document.write(`
+          <html>
+            <head>
+              <title>${title} - NutriSnap</title>
+              <style>
+                :root { --primary: #0071e3; --ink: #1d1d1f; --mute: #6e6e73; --bg: #f5f5f7; --hair: #e8e8ed; }
+                body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Arial, sans-serif; padding: 48px; color: var(--ink); line-height: 1.6; background: #ffffff; }
+                .report-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--primary); padding-bottom: 24px; margin-bottom: 32px; }
+                .brand { font-size: 24px; font-weight: 700; color: var(--ink); letter-spacing: -0.03em; }
+                .brand span { color: var(--primary); }
+                .meta { text-align: right; color: var(--mute); font-size: 13px; }
+                .meta b { color: var(--ink); display: block; font-size: 15px; }
+                h1 { margin: 0 0 4px; color: var(--ink); font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
+                .subtitle { color: var(--mute); font-size: 15px; margin: 0; }
+                .content-box { background: var(--bg); border-radius: 16px; padding: 32px; margin-top: 24px; border: 1px solid var(--hair); box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+                ul { padding-left: 20px; margin: 8px 0; }
+                .footer { margin-top: 48px; font-size: 12px; color: var(--mute); text-align: center; border-top: 1px solid var(--hair); padding-top: 16px; }
+                @media print {
+                  body { padding: 24px; }
+                  .content-box { background: #fff; border: 1px solid #ccc; box-shadow: none; }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="report-header">
+                <div>
+                  <div style="font-size: 12px; font-weight: 600; color: #0071e3; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">NutriSnap Intelligence Report</div>
+                  <h1>${title}</h1>
+                  <p class="subtitle">${subtitle}</p>
+                </div>
+                <div class="meta">
+                  <b>Verified User</b>
+                  <span>User ID: ${escapeHtml(state.userId || 'Valued User')}</span><br>
+                  <span>Generated: ${new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                </div>
+              </div>
+              <div class="content-box">
+                ${formattedContent}
+              </div>
+              <div class="footer">NutriSnap Food Intelligence &amp; Fitness Hub &copy; ${new Date().getFullYear()} &middot; Professional Health &amp; Fitness Plan</div>
+              <script>
+                window.onload = function() {
+                  setTimeout(() => { window.print(); }, 300);
+                };
+              <\/script>
+            </body>
+          </html>
+        `);
+        win.document.close();
+      }
+
+      function downloadInvoicePdf() {
+        const amount = state.finalAmount || 500;
+        const invoiceNo = 'NS-' + Math.floor(100000 + Math.random() * 900000);
+        const win = window.open('', '_blank');
+        win.document.write(`
+          <html>
+            <head>
+              <title>Invoice ${invoiceNo} - NutriSnap</title>
+              <style>
+                :root { --primary: #0071e3; --ink: #1d1d1f; --mute: #6e6e73; --hair: #e8e8ed; --fill: #f5f5f7; }
+                body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Arial, sans-serif; padding: 48px; color: var(--ink); line-height: 1.5; background: #ffffff; }
+                .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--primary); padding-bottom: 24px; margin-bottom: 32px; }
+                .brand { font-size: 26px; font-weight: 700; color: var(--ink); letter-spacing: -0.03em; }
+                .brand span { color: var(--primary); }
+                .invoice-badge { display: inline-block; padding: 6px 12px; background: #e1f5fe; color: #0288d1; border-radius: 980px; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+                .meta { text-align: right; color: var(--mute); font-size: 13px; }
+                .meta b { color: var(--ink); display: block; font-size: 15px; }
+                .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; background: var(--fill); padding: 20px 24px; border-radius: 16px; }
+                .details-group span { display: block; color: var(--mute); font-size: 13px; font-weight: 500; }
+                .details-group b { display: block; color: var(--ink); font-size: 15px; margin-top: 2px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--hair); font-size: 15px; }
+                th { background: var(--fill); font-weight: 600; color: var(--mute); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+                .total-section { display: flex; justify-content: flex-end; margin-top: 24px; }
+                .total-box { width: 280px; background: var(--fill); padding: 16px 20px; border-radius: 14px; }
+                .total-row { display: flex; justify-content:between; font-size: 15px; margin-bottom: 6px; color: var(--mute); }
+                .total-row.final { font-size: 18px; font-weight: 700; color: var(--ink); border-top: 1px solid var(--hair); padding-top: 8px; margin-top: 8px; margin-bottom: 0; }
+                .footer { margin-top: 60px; font-size: 12px; color: var(--mute); text-align: center; border-top: 1px solid var(--hair); padding-top: 16px; }
+              </style>
+            </head>
+            <body>
+              <div class="invoice-header">
+                <div>
+                  <div class="invoice-badge">Tax Receipt / Invoice</div>
+                  <div class="brand">nutri<span>snap</span></div>
+                </div>
+                <div class="meta">
+                  <b>Invoice #${invoiceNo}</b>
+                  <span>Date: ${new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                </div>
+              </div>
+
+              <div class="details-grid">
+                <div class="details-group">
+                  <span>Billed To</span>
+                  <b>User ID: ${escapeHtml(state.userId || 'N/A')}</b>
+                </div>
+                <div class="details-group" style="text-align: right;">
+                  <span>Payment Method</span>
+                  <b>UPI Transfer (8369618330@yespop)</b>
+                </div>
+              </div>
+
+              <table>
+                <thead>
+                  <tr>
+                    <th>Item Description</th>
+                    <th>Billing Cycle</th>
+                    <th style="text-align: right;">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>NutriSnap Monthly Premium Subscription (AI Scanner, Diet Planner &amp; Workout Coach)</td>
+                    <td>1 Month Access</td>
+                    <td style="text-align: right; font-weight: 600;">₹${amount}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="total-section">
+                <div class="total-box">
+                  <div class="total-row"><span>Subtotal</span><span>₹${amount}</span></div>
+                  <div class="total-row"><span>Tax (GST 0%)</span><span>₹0</span></div>
+                  <div class="total-row final"><span>Total Paid</span><span>₹${amount} INR</span></div>
+                </div>
+              </div>
+
+              <div class="footer">Thank you for subscribing to NutriSnap! For billing queries or assistance, contact raulatharva910@gmail.com</div>
+              <script>window.print();<\/script>
+            </body>
+          </html>
+        `);
+        win.document.close();
+      }
+
+      /* ---------- Sign-in and session ---------- */
+
+      function isExpired(error) {
+        return !!(error && /SESSION_EXPIRED/.test(error.message || ''));
+      }
+
+      function cleanMessage(error, fallback) {
+        const text = error && error.message ? String(error.message).replace(/^Error:\s*/, '') : '';
+        return text || fallback || '';
+      }
+
+      function historyKey() {
+        return 'nutrisnap-history-v1' + (state.userId ? ':' + state.userId : '');
+      }
+
+      function showView(name) {
+        $('login-view').hidden = name !== 'login';
+        $('app-view').hidden = name !== 'app';
+        $('nav-tabs').hidden = name !== 'app';
+
+        const signedIn = name === 'app' && !!state.userId;
+        $('account').hidden = !signedIn;
+        $('privacy').hidden = signedIn;
+      }
+
+      function updateAccount() {
+        if (!state.userId) return;
+
+        let text = state.userId + (state.plan === 'Trial' ? ' (Trial)' : '');
+        if (typeof state.remaining === 'number') {
+          text += ' · ' + state.remaining + ' scan' + (state.remaining === 1 ? '' : 's') + ' left today';
+        }
+        $('account-info').textContent = text;
+      }
+
+      function setLoginBusy(value) {
+        const button = $('login-btn');
+        button.disabled = value;
+        button.querySelector('span').textContent = value ? 'Signing in…' : 'Sign in';
+      }
+
+      async function loadStatus() {
+        try {
+          const status = await api.call('getAppStatus');
+          state.ready = status.ready;
+
+          if (!status.ready) {
+            toast(
+              'Setup required: add ' + status.missing.join(' and ') + ' in Script Properties.',
+              true
+            );
+          }
+        } catch (_) {
+          toast('Could not confirm server setup.', true);
+        }
+      }
+
+      function generateQRCode(amount) {
+        state.finalAmount = amount;
+        const container = $('qrcode');
+        if (container && window.QRCode) {
+          container.innerHTML = '';
+          new QRCode(container, {
+            text: "upi://pay?pa=8369618330@yespop&pn=Mr%20Atharva%20Milind%20Raul&am=" + amount + "&cu=INR",
+            width: 150,
+            height: 150,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+          });
+        }
+      }
+
+      /* ---------- Remember me: save the login in every place the browser allows ---------- */
+
+      const COOKIE_DAYS = 60;
+
+      function setCookie(name, value, days) {
+        try {
+          document.cookie = name + '=' + encodeURIComponent(value) +
+            '; max-age=' + (days * 86400) + '; path=/; SameSite=None; Secure';
+        } catch (_) {}
+      }
+
+      function getCookie(name) {
+        try {
+          const parts = document.cookie.split('; ');
+          for (let i = 0; i < parts.length; i++) {
+            const eq = parts[i].indexOf('=');
+            if (parts[i].slice(0, eq) === name) return decodeURIComponent(parts[i].slice(eq + 1));
+          }
+        } catch (_) {}
+        return '';
+      }
+
+      function deleteCookie(name) {
+        try {
+          document.cookie = name + '=; max-age=0; path=/; SameSite=None; Secure';
+        } catch (_) {}
+      }
+
+      function saveLogin(token, userId) {
+        if (state.remember) {
+          try { localStorage.setItem(SESSION_KEY, token); } catch (_) {}
+          try { localStorage.setItem(SESSION_KEY + '-user', userId || ''); } catch (_) {}
+          setCookie('ns_sess', token, COOKIE_DAYS);
+          setCookie('ns_user', userId || '', COOKIE_DAYS);
+          rememberInUrl(token);
+        } else {
+          // Not remembered: keep it only until this tab is closed
+          try { sessionStorage.setItem(SESSION_KEY, token); } catch (_) {}
+        }
+      }
+
+      function loadSavedToken() {
+        let token = '';
+        try { token = localStorage.getItem(SESSION_KEY) || ''; } catch (_) {}
+        if (!token) token = getCookie('ns_sess');
+        if (!token) { try { token = sessionStorage.getItem(SESSION_KEY) || ''; } catch (_) {} }
+        return /^[a-f0-9]{64}$/.test(token) ? token : '';
+      }
+
+      function loadSavedUserId() {
+        let id = '';
+        try { id = localStorage.getItem(SESSION_KEY + '-user') || ''; } catch (_) {}
+        return id || getCookie('ns_user');
+      }
+
+      function clearLogin() {
+        try { localStorage.removeItem(SESSION_KEY); } catch (_) {}
+        try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+        deleteCookie('ns_sess');
+        forgetInUrl();
+      }
+
+      /* ---------- Keep the login in the page address (works even when the browser wipes storage) ---------- */
+
+      function rememberInUrl(token) {
+        try {
+          if (typeof google !== 'undefined' && google.script && google.script.history) {
+            google.script.history.replace(null, null, 't-' + token);
+          }
+        } catch (_) {}
+      }
+
+      function forgetInUrl() {
+        try {
+          if (typeof google !== 'undefined' && google.script && google.script.history) {
+            google.script.history.replace(null, null, '');
+          }
+        } catch (_) {}
+      }
+
+      function readUrlToken() {
+        return new Promise(resolve => {
+          try {
+            if (typeof google === 'undefined' || !google.script || !google.script.url) {
+              resolve('');
+              return;
+            }
+            google.script.url.getLocation(loc => {
+              const hash = (loc && loc.hash) || '';
+              const match = hash.match(/^t-([a-f0-9]{64})$/);
+              resolve(match ? match[1] : '');
+            });
+            setTimeout(() => resolve(''), 2500);
+          } catch (_) {
+            resolve('');
+          }
+        });
+      }
+
+      function enterApp(info) {
+        state.token = info.token;
+        state.userId = info.userId;
+        state.remaining = info.remainingToday;
+        state.plan = info.plan || '';
+
+        // Remember the login on this device until the user signs out or the server expires the session
+        saveLogin(info.token, info.userId);
+
+        updateAccount();
+        showView('app');
+        renderHistory();
+        loadStatus();
+        generateQRCode("500");
+
+        if (typeof info.daysLeft === 'number' && info.daysLeft <= 0) {
+          $('nav-tabs').hidden = true;
+          $('tab-scanner').hidden = true;
+          $('tab-diet').hidden = true;
+          $('tab-exercises').hidden = true;
+          $('tab-recipe').hidden = true;
+          $('tab-subscribe').hidden = false;
+
+          toast('Your subscription has ended. Please pay and submit your UTR to renew your access.', true);
+        } else if (typeof info.daysLeft === 'number' && info.daysLeft <= 3) {
+          const what = state.plan === 'Trial' ? 'free trial' : 'access';
+          toast('Your ' + what + ' ends in ' + info.daysLeft + (info.daysLeft === 1 ? ' day' : ' days') + '. Renew soon to keep scanning.');
+        }
+      }
+
+      function leaveApp(message, clearStorage = true) {
+        if (clearStorage) {
+          clearLogin();
+        }
+
+        state.token = null;
+        state.userId = null;
+        state.remaining = null;
+        state.plan = '';
+        state.image = null;
+        state.result = null;
+
+        zone.classList.remove('has-image');
+        $('preview').removeAttribute('src');
+        $('photo').value = '';
+        $('analysis').classList.remove('show');
+        $('empty-results').style.display = '';
+
+        $('login-error').textContent = message || '';
+        showView('login');
+      }
+
+      $('login-form').addEventListener('submit', async event => {
+        event.preventDefault();
+
+        const userId = $('user-id').value.trim();
+        const password = $('password').value;
+        const error = $('login-error');
+        error.textContent = '';
+
+        if (!userId || !password) {
+          error.textContent = 'Enter your user ID and password.';
+          return;
+        }
+
+        setLoginBusy(true);
+        state.remember = $('remember').checked;
+
+        try {
+          const info = await api.call('login', { userId: userId, password: password });
+          setLoginBusy(false);
+          $('password').value = '';
+          enterApp(info);
+          if (state.remember) {
+            setTimeout(() => {
+              toast('Tip: bookmark this page now (Ctrl/Cmd + D, or Add to Home Screen) and open it from the bookmark to stay signed in.');
+            }, 1500);
+          }
+        } catch (err) {
+          setLoginBusy(false);
+          error.textContent = cleanMessage(err, 'Could not sign in. Please try again.');
+        }
+      });
+
+      $('logout').addEventListener('click', async () => {
+        const token = state.token;
+        if (token) {
+          try { await api.call('logout', token); } catch (_) {}
+        }
+        leaveApp('', true);
+      });
+
+      /* ---------- Coupon System ---------- */
+      async function applyCoupon() {
+        const code = $('coupon-code-input').value.trim();
+        if (!code) return;
+
+        try {
+          const res = await api.call('validateCoupon', code);
+          state.finalAmount = res.finalPrice;
+          $('plan-price-display').innerHTML = '<strike>₹500</strike> ₹' + res.finalPrice;
+          $('coupon-msg').style.color = "#34c759";
+          $('coupon-msg').textContent = 'Coupon applied! ' + res.discountPercent + '% discount successfully deducted.';
+          generateQRCode(res.finalPrice);
+          $('upi-pay-btn').href = "upi://pay?pa=8369618330@yespop&pn=Mr%20Atharva%20Milind%20Raul&am=" + res.finalPrice + "&cu=INR";
+          $('upi-pay-btn').querySelector('span').textContent = "Pay ₹" + res.finalPrice + " via GPay / PhonePe / Paytm";
+        } catch (err) {
+          $('coupon-msg').style.color = "var(--err)";
+          $('coupon-msg').textContent = cleanMessage(err, 'Invalid coupon.');
+        }
+      }
+
+      /* ---------- UTR Submission Action ---------- */
+      async function submitUtrAction() {
+        const utr = $('utr-input').value.trim();
+        if (!utr || utr.length < 8) {
+          return toast('Please enter a valid 12-digit UPI reference number.', true);
+        }
+
+        toast('Submitting UTR and activating your 1-day trial pass...');
+        try {
+          const res = await api.call('submitUtrPayment', { token: state.token, utr: utr });
+          toast(res.message);
+          setTimeout(() => { location.reload(); }, 2500);
+        } catch (err) {
+          toast(cleanMessage(err), true);
+        }
+      }
+
+      /* ---------- Diet Plan Generator ---------- */
+      async function generateDietPlanAction() {
+        const profile = {
+          heightCm: $('diet-height').value,
+          weightKg: $('diet-weight').value,
+          goal: $('diet-goal').value,
+          dietPreference: $('diet-preference').value
+        };
+
+        if (!profile.weightKg || !profile.heightCm) {
+          return toast('Please enter your height and weight.', true);
+        }
+
+        toast('Saving specs and generating your custom diet plan...');
+        try {
+          await api.call('saveUserProfile', { token: state.token, profile: profile });
+          const data = await api.call('generateDietPlan', { token: state.token, profile: profile });
+          const out = $('diet-output');
+          out.textContent = data.plan;
+          out.hidden = false;
+          $('download-diet-btn').hidden = false;
+          toast('Diet plan generated successfully!');
+        } catch (err) {
+          toast(cleanMessage(err), true);
+        }
+      }
+
+      /* ---------- AI Recipe Generator Action ---------- */
+      async function generateRecipeAction() {
+        const mealName = $('recipe-meal-name').value.trim();
+        if (!mealName) {
+          return toast('Please enter a meal name.', true);
+        }
+
+        toast('Generating step-by-step recipe with AI Chef...');
+        try {
+          const data = await api.call('generateRecipe', { token: state.token, mealName: mealName });
+          const out = $('recipe-output');
+          out.textContent = data.recipe;
+          out.hidden = false;
+          $('download-recipe-btn').hidden = false;
+          toast('Recipe ready!');
+        } catch (err) {
+          toast(cleanMessage(err), true);
+        }
+      }
+
+      /* ---------- Workout Routine Generator ---------- */
+      async function generateWorkoutAction() {
+        const msg = $('workout-context').value;
+        toast('Generating your optimized workout routine...');
+
+        try {
+          const data = await api.call('generateWorkoutPlan', { token: state.token, message: msg });
+          const out = $('workout-output');
+          out.textContent = data.routine;
+          out.hidden = false;
+          $('complete-workout-btn').hidden = false;
+          $('download-workout-btn').hidden = false;
+          toast('Workout ready!');
+        } catch (err) {
+          toast(cleanMessage(err), true);
+        }
+      }
+
+      async function markWorkoutComplete() {
+        const routineText = $('workout-output').textContent;
+        try {
+          await api.call('generateWorkoutPlan', { token: state.token, completedWorkout: routineText, message: 'Completed workout.' });
+          toast('Workout saved to AI historical memory!');
+          $('complete-workout-btn').hidden = true;
+        } catch (err) {
+          toast(cleanMessage(err), true);
+        }
+      }
+
+      /* ---------- Photo ---------- */
+
+      function pickPhoto() {
+        $('photo').click();
+      }
+
+      $('browse').addEventListener('click', event => {
+        event.preventDefault();
+        pickPhoto();
+      });
+
+      $('replace').addEventListener('click', event => {
+        event.preventDefault();
+        pickPhoto();
+      });
+
+      $('photo').addEventListener('change', event => {
+        loadPhoto(event.target.files[0]);
+      });
+
+      const zone = $('dropzone');
+
+      ['dragenter', 'dragover'].forEach(name => {
+        zone.addEventListener(name, event => {
+          event.preventDefault();
+          zone.classList.add('dragover');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(name => {
+        zone.addEventListener(name, event => {
+          event.preventDefault();
+          zone.classList.remove('dragover');
+        });
+      });
+
+      zone.addEventListener('drop', event => {
+        loadPhoto(event.dataTransfer.files[0]);
+      });
+
+      async function loadPhoto(file) {
+        if (!file) return;
+
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+          return toast('Please choose a JPG, PNG, or WEBP photo.', true);
+        }
+
+        try {
+          const dataUrl = await compressPhoto(file);
+          state.image = dataUrl;
+          $('preview').src = dataUrl;
+          $('filename').textContent = file.name;
+          zone.classList.add('has-image');
+
+          toast('Photo ready. Tap “Identify & analyze meal” when you’re ready.');
+        } catch (error) {
+          toast('We could not prepare that image. Please try another photo.', true);
+        }
+      }
+
+      function compressPhoto(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+
+          reader.onerror = reject;
+
+          reader.onload = () => {
+            const image = new Image();
+
+            image.onerror = reject;
+
+            image.onload = () => {
+              let width = image.naturalWidth;
+              let height = image.naturalHeight;
+              const maxSide = 1280;
+
+              if (Math.max(width, height) > maxSide) {
+                const scale = maxSide / Math.max(width, height);
+                width = Math.round(width * scale);
+                height = Math.round(height * scale);
+              }
+
+              const canvas = document.createElement('canvas');
+              canvas.width = width;
+              canvas.height = height;
+
+              canvas.getContext('2d').drawImage(image, 0, 0, width, height);
+
+              let quality = 0.86;
+              let result = canvas.toDataURL('image/jpeg', quality);
+
+              while (result.length > MAX_INPUT && quality > 0.45) {
+                quality -= 0.1;
+                result = canvas.toDataURL('image/jpeg', quality);
+              }
+
+              result.length > MAX_INPUT
+                ? reject(new Error('large'))
+                : resolve(result);
+            };
+
+            image.src = reader.result;
+          };
+
+          reader.readAsDataURL(file);
+        });
+      }
+
+      /* ---------- Analysis ---------- */
+
+      async function analyze() {
+        if (!state.token) {
+          return leaveApp('Please sign in to continue.');
+        }
+
+        if (!state.ready) {
+          return toast(
+            'Add GEMINI_API_KEY and USDA_API_KEY in Apps Script Script Properties.',
+            true
+          );
+        }
+
+        if (!state.image) {
+          return toast('Add a food photo first.', true);
+        }
+
+        const notes = $('scan-notes').value.trim();
+        setBusy(true);
+
+        try {
+          const result = await api.call('analyzeMeal', {
+            dataUrl: state.image,
+            notes: notes,
+            token: state.token
+          });
+
+          setBusy(false);
+          state.result = result;
+
+          if (typeof result.remainingScans === 'number') {
+            state.remaining = result.remainingScans;
+            updateAccount();
+          }
+
+          renderResult(result);
+          saveHistory(result);
+        } catch (error) {
+          setBusy(false);
+
+          if (isExpired(error)) {
+            return leaveApp('Your session expired. Please sign in again.');
+          }
+
+          toast(
+            cleanMessage(error, 'Analysis failed. Please try again.'),
+            true
+          );
+        }
+      }
+
+      $('analyze').addEventListener('click', analyze);
+
+      function renderResult(result) {
+        const n = result.nutrition;
+
+        $('empty-results').style.display = 'none';
+        $('analysis').classList.add('show');
+
+        $('dish-name').value = result.dishName;
+        $('serving').textContent = result.serving;
+        $('dish-confidence').textContent = result.dishConfidence + ' confidence';
+        $('calories').textContent = number(n.calories);
+        $('coverage').textContent = n.databaseCoverage;
+
+        [
+          ['protein', n.proteinG, 80],
+          ['carbs', n.carbsG, 100],
+          ['fat', n.fatG, 70],
+          ['fiber', n.fiberG, 30]
+        ].forEach(([key, value, max]) => {
+          $(key).textContent = number(value, 1) + 'g';
+          $(key + '-bar').style.width = percent(value, max);
+        });
+
+        $('sugars').textContent = number(n.sugarsG, 1) + 'g';
+        $('sodium').textContent = number(n.sodiumMg) + 'mg';
+        $('potassium').textContent = number(n.potassiumMg) + 'mg';
+        $('calcium').textContent = number(n.calciumMg) + 'mg';
+        $('iron').textContent = number(n.ironMg, 1) + 'mg';
+
+        $('ingredients').innerHTML = result.ingredients.map(row =>
+          '<span class="ingredient" title="' + escapeHtml(row.databaseName || '') + '">' +
+          escapeHtml(row.name) + ' · ' + number(row.amountG) + 'g</span>'
+        ).join('');
+
+        toast('Analysis ready. You can edit the meal name before you save it.');
+      }
+
+      $('dish-name').addEventListener('change', () => {
+        if (state.result) {
+          state.result.dishName = $('dish-name').value.trim() || state.result.dishName;
+          saveHistory(state.result);
+        }
+      });
+
+      /* ---------- History (kept per user on this device) ---------- */
+
+      function savedHistory() {
+        try {
+          return JSON.parse(localStorage.getItem(historyKey()) || '[]');
+        } catch (_) {
+          return [];
+        }
+      }
+
+      function saveHistory(result) {
+        const item = {
+          dishName: result.dishName,
+          calories: result.nutrition.calories,
+          date: new Date().toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric'
+          }),
+          id: Date.now()
+        };
+
+        const list = [item]
+          .concat(savedHistory().filter(x => x.dishName !== item.dishName))
+          .slice(0, 6);
+
+        localStorage.setItem(historyKey(), JSON.stringify(list));
+        renderHistory();
+      }
+
+      function renderHistory() {
+        const history = savedHistory();
+
+        $('history-list').innerHTML = history.length
+          ? history.slice(0, 3).map(item =>
+            '<article class="history-item">' +
+              '<b>' + escapeHtml(item.dishName) + '</b>' +
+              '<span>' + escapeHtml(item.date) + ' · saved on this device</span>' +
+              '<strong>' + number(item.calories) + ' kcal</strong>' +
+            '</article>'
+          ).join('')
+          : '<span class="empty-history">Your completed scans stay on this device, not in a shared spreadsheet.</span>';
+      }
+
+      $('clear-history').addEventListener('click', () => {
+        localStorage.removeItem(historyKey());
+        renderHistory();
+        toast('Local scan history cleared.');
+      });
+
+      /* ---------- Start (Persistent Login) ---------- */
+
+      (async () => {
+        let savedToken = '';
+
+        savedToken = loadSavedToken();
+
+        // If the browser wiped its storage, fall back to the token kept in the page address
+        if (!savedToken) {
+          savedToken = await readUrlToken();
+        }
+
+        if (!savedToken) {
+          const lastUser = loadSavedUserId();
+          if (lastUser) $('user-id').value = lastUser;
+          showView('login');
+          return;
+        }
+
+        // Try up to 3 times. Only a real SESSION_EXPIRED error clears the saved login.
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            const info = await api.call('checkSession', savedToken);
+            enterApp(info);
+            return;
+          } catch (error) {
+            if (isExpired(error)) {
+              leaveApp('', true);
+              return;
+            }
+            if (attempt < 3) {
+              await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+          }
+        }
+
+        // Network or server problem: keep the saved login so the next open works
+        showView('login');
+        $('login-error').textContent = 'Could not reach the server. Check your internet and reopen the app.';
+      })();
+
+      renderHistory();
+    </script>
+  </body>
+</html>
